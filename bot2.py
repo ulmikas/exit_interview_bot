@@ -17,6 +17,10 @@ from telegram.ext import (
     ConversationHandler,
 )
 
+# Загрузка токенов и ключей
+with open('config.json', 'r', encoding='utf-8') as f:
+    config = json.load(f)
+
 json_schema = {
     "type": "object",
     "properties": {
@@ -28,14 +32,12 @@ json_schema = {
 }
 
 # Настройки бота
-BOT_TOKEN = '7940286497:AAEd3jTyA8bu3N4pmDcz8qYz49eJvDs_LVg'
-OPENROUTER_API_KEY = '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'
-# OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+OPENROUTER_API_KEY = config['OPENROUTER_API_KEY']
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1"
 
 # Инициализация клиента OpenAI
 client = OpenAI(
-    api_key='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', # This should ideally be an environment variable
+    api_key=OPENROUTER_API_KEY,
     base_url="https://openrouter.ai/api/v1",
 )
 
@@ -318,7 +320,7 @@ async def generate_interview_summary(messages: list) -> str:
         return "Не удалось сгенерировать полный отчет. Пожалуйста, проверьте диалог вручную."
 
 def main() -> None:
-    application = Application.builder().token(BOT_TOKEN).build()
+    application = Application.builder().token(config['TELEGRAM_BOT_TOKEN']).build()
     
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
