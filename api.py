@@ -18,20 +18,32 @@ def get_dialog_ids():
 @app.route('/dialogs/<int:user_id>', methods=['GET'])
 def get_dialog_by_user_id(user_id):
     db_session = SessionLocal()
-    responses = db_session.query(SurveyResponse).filter(SurveyResponse.user_id == user_id).all()
-    dialog_history = []
-    for resp in responses:
-        dialog_history.append({
-            'id': resp.id,
-            'user_id': resp.user_id,
-            'username': resp.username,
-            'dialog': resp.dialog,
-            'summary': resp.summary,
-            'start_time': resp.start_time,
-            'end_time': resp.end_time
-        })
-    db_session.close()
-    return jsonify(dialog_history)
+    response = db_session.query(SurveyResponse).filter(SurveyResponse.user_id == user_id).order_by(SurveyResponse.id.desc()).first()
+    
+    dialog_data = {
+        'id': response.id,
+        'user_id': response.user_id,
+        'username': response.username,
+        'dialog': json.loads(response.dialog),
+        'summary': response.summary,
+        'start_time': response.start_time,
+        'end_time': response.end_time
+    }
+    
+    return jsonify(dialog_data)
+    # dialog_history = []
+    # for resp in responses:
+    #     dialog_history.append({
+    #         'id': resp.id,
+    #         'user_id': resp.user_id,
+    #         'username': resp.username,
+    #         'dialog': resp.dialog,
+    #         'summary': resp.summary,
+    #         'start_time': resp.start_time,
+    #         'end_time': resp.end_time
+    #     })
+    # db_session.close()
+    # return jsonify(dialog_history)
 
 
 if __name__ == "__main__":
