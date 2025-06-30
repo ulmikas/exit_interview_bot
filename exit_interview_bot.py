@@ -208,7 +208,7 @@ def main() -> None:
         bot = SurveyBot(config)
         
         # Создаем Application и передаем токен бота
-        application = Application.builder().token("7940286497:AAEd3jTyA8bu3N4pmDcz8qYz49eJvDs_LVg").build()
+        application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
         
         # Настраиваем обработчики команд
         conv_handler = ConversationHandler(
