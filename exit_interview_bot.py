@@ -108,7 +108,7 @@ class SurveyBot:
         }
 
         headers = {
-          "Authorization": f"Bearer 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"
+          "Authorization": f"Bearer OPENROUT_API_KEY"
         }
 
 
