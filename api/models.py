@@ -7,6 +7,7 @@ engine = create_engine('sqlite:///interviews.db', echo=True)
 SessionLocal = sessionmaker(bind=engine)
 session = SessionLocal()
 
+
 class SurveyResponse(Base):
     __tablename__ = 'interviews2'
     id = Column(Integer, primary_key=True)
@@ -16,5 +17,6 @@ class SurveyResponse(Base):
     end_time = Column(String)
     dialog = Column(Text)
     summary = Column(Text)
+
 
 Base.metadata.create_all(engine)

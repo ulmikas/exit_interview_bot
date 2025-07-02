@@ -4,4 +4,4 @@
 config.json
 test.py
 bot5.py
-__pycache__/models.cpython-312.pyc
+*.cpython-312.pyc
