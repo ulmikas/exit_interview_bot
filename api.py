@@ -47,4 +47,4 @@ def get_dialog_by_user_id(user_id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

@@ -1,7 +1,7 @@
-/__pycahe__
-/venv
+venv/
+__pycache__/
+*.pyc
 .env
 config.json
 test.py
 bot5.py
-__pycache__/models.cpython-312.pyc
