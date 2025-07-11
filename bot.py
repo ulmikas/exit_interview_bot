@@ -30,20 +30,18 @@ client = OpenAI(
 
 system_prompt = f"""
 Ты - профессиональный HR-интервьюер, который собирает обратную связь от уволившихся сотрудников. 
-Твоя задача - провести интервью так, как это делает человек: задавать вопросы с теплотой и пониманием, 
-следить за логикой беседы, но оставаться гибким в подходе. 
+Твоя задача - задавать вопросы по одному, при необходимости уточнять детали, но не давить на собеседника. 
+Действуй по следующему алгоритму:
 
-Принципы взаимодействия:
-1. Начни с доброжелательного приветствия и объяснения цели интервью
-2. Используй открытые вопросы (начинающиеся с "Как", "Почему", "Расскажите...")
-3. При неполных ответах задавай уточняющие вопросы, но избегай давления
-4. Если собеседник отказывается отвечать, мягко переходи к следующей теме
-5. Поддерживай дружелюбный тон, используй эмпатичные фразы ("Я понимаю", "Это важный момент")
-6. Завершай интервью только когда все ключевые темы будут раскрыты или станет очевидным, что собеседник хочет закончить
+1. Задавай вопросы строго по одному
+2. Если ответ неполный - задай 1-2 уточняющих вопроса
+3. При отказе отвечать - сразу переходи к следующему пункту
+4. Следи за тоном: сохраняй нейтрально-доброжелательную позицию
+5. Когда все ключевые темы будут раскрыты или собеседник откажется продолжать - заверши диалог и отправь STOP
 
-Структура интервью (следуй по порядку):
+Темы для раскрытия в строгом порядке:
 1. Главная причина увольнения
-2. Дополнительные факторы (максимум 3)
+2. дургие факторы если они были
 3. Наличие оффера
 4. ФИО руководителя
 5. Отношения с руководителем
@@ -51,12 +49,7 @@ system_prompt = f"""
 7. Возможности профразвития
 8. Предложения по улучшению
 
-Ключевые правила:
-- Не реагируй на вопросы, не относящиеся к интервью
-- Не пиши код, не решай технические задачи
-- Не используй маркированные списки и формальную структуру
-- Если собеседник долго молчит (>2 минут), предложи перейти к следующему вопросу
-- При завершении интервью отправь только сообщение "STOP" без дополнительного текста
+Никогда не задавай больше 15 вопросов. Если собеседник проявляет негатив - сразу завершай диалог и отправь STOP.
 """
 
 
@@ -123,21 +116,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Добавляем последний вопрос и ответ в диалог
     last_question = context.user_data.get('last_question', '')
     user_answer = update.message.text.strip()
-    
+   
     context.user_data['messages'].append({ "role": "assistant", "content": last_question })
     context.user_data['messages'].append({ "role": "user", "content": user_answer })
 
     try:
       # Отправляем предыдущие ответы в OpenRouter для обработки и генерации следующего вопроса
-      next_question = generate_next_question(chat_id, context.user_data['messages'])
-      
-      print(f"next_question {next_question}")
-      print(f"next_question STOP? {next_question.endswith("STOP")}")
+      next_question = generate_next_question(chat_id, context.user_data['messages'])     
 
       if "STOP" in next_question:
         await update.message.reply_text(next_question.removesuffix("STOP"))
         await finish_survey(update, context)
       else:
+        context.user_data['last_question'] = next_question
         await update.message.reply_text(next_question)
 
     except Exception as e:
@@ -146,10 +137,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def generate_next_question(employee_id, previous_answers):
+    logger.info(f"диалог: {previous_answers}")
+
     try:
       # Обновляем запрос с указанием схемы
       response = client.chat.completions.create(
-          model="deepseek/deepseek-r1-0528:free",
+          model="anthropic/claude-sonnet-4",
           temperature=0.7,
           messages=[
               {"role": "system", "content": system_prompt},
@@ -169,7 +162,6 @@ async def finish_survey(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # full_dialog = '\n'.join(context.user_data.get('dialog', []))
     messages = json.dumps(context.user_data.get('messages', []), ensure_ascii=False)
     
-    print(messages)
     # Заполняем и сохраняем итоговую запись в базу данных
     user_id = update.effective_user.id
     username = update.effective_user.username
@@ -182,7 +174,7 @@ async def finish_survey(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(f"Спасибо за участие!\nВаш опрос завершён.\nИтоговый отчет:\n\n{final_summary}")
     context.user_data['state'] = INACTIVE_SESSION
-    del context.user_data['answers']
+    del context.user_data['messages']
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.callback_query.edit_message_text("Интервью отменено.")
@@ -206,7 +198,7 @@ async def generate_interview_summary(messages: str) -> str:
 
     # Обновляем запрос с указанием схемы
     response = client.chat.completions.create(
-        model="deepseek/deepseek-r1-0528:free",
+        model="anthropic/claude-sonnet-4",
         messages=[
             {
                 "role": "system",
