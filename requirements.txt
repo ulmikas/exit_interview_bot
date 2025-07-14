@@ -1,0 +1,10 @@
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Flask-Cors==5.0.1
+Flask-Migrate==4.1.0
+environs==14.1.1
+gunicorn==23.0.0
+requests==2.32.3
+python-telegram-bot==22.1
+SQLAlchemy==2.0.41
+openai==1.92.3
