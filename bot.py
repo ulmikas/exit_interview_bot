@@ -4,12 +4,12 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 from openai import OpenAI
 from datetime import datetime
 import logging
+import os
 
 
 # Токены и ключи для работы с Telegram и OpenRouter
-with open('config.json', 'r', encoding='utf-8') as f:
-    config = json.load(f)
-
+# with open('config.json', 'r', encoding='utf-8') as f:
+#     config = json.load(f)
 
 # Индикаторы активности опроса
 ACTIVE_SESSION = True
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 # Получаем ключ из переменной окружения
 client = OpenAI(
-    api_key=config['OPENROUTER_API_KEY'],
+    api_key=os.getenv('OPENROUTER_API_KEY'),
     base_url="https://openrouter.ai/api/v1",
 )
 
@@ -54,7 +54,7 @@ system_prompt = f"""
 
 
 def create_database():
-    conn = sqlite3.connect(config['DATABASE_NAME'])
+    conn = sqlite3.connect(os.getenv('DATABASE_NAME'))
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS interviews2 (
@@ -183,7 +183,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 def save_interview(user_id, username, start_time, end_time, dialog, summary):
-    conn = sqlite3.connect(config['DATABASE_NAME'])
+    conn = sqlite3.connect(os.getenv('DATABASE_NAME'))
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO interviews2 (user_id, username, start_time, end_time, dialog, summary)
@@ -222,7 +222,7 @@ async def generate_interview_summary(messages: str) -> str:
 
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(config['TELEGRAM_BOT_TOKEN']).build()
+    application = ApplicationBuilder().token(os.getenv('TELEGRAM_BOT_TOKEN')).build()
 
     create_database()  # Создаем таблицу базы данных
 
