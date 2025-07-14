@@ -31,20 +31,6 @@ def get_dialog_by_user_id(user_id):
     }
     
     return jsonify(dialog_data)
-    # dialog_history = []
-    # for resp in responses:
-    #     dialog_history.append({
-    #         'id': resp.id,
-    #         'user_id': resp.user_id,
-    #         'username': resp.username,
-    #         'dialog': resp.dialog,
-    #         'summary': resp.summary,
-    #         'start_time': resp.start_time,
-    #         'end_time': resp.end_time
-    #     })
-    # db_session.close()
-    # return jsonify(dialog_history)
-
 
 if __name__ == "__main__":
     app.run(debug=True)

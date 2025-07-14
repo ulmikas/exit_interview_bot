@@ -16,7 +16,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем остальные файлы
 COPY . .
 
-# EXPOSE 5000
 
 # Команда для запуска приложения
-CMD ["python", "bot.py"]
+CMD python bot.py & python api.py
